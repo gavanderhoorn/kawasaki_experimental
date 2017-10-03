@@ -12,6 +12,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <exec_depend>kawasaki_fs03n_moveit_config</exec_depend>
+  <exec_depend>kawasaki_fs06l_moveit_config</exec_depend>
   <exec_depend>kawasaki_fs_support</exec_depend>
 
   <export>
