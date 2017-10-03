@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="2">
+  <name>kawasaki_fs03n_moveit_config</name>
+  <version>0.1.0</version>
+  <description>
+    <p>
+      MoveIt package for the Kawasaki FS03N.
+    </p>
+    <p>
+      An automatically generated package with all the configuration and launch
+      files for using the Kawasaki FS03N with the MoveIt Motion Planning
+      Framework.
+    </p>
+  </description>
+  <author>G.A. vd. Hoorn (TU Delft Robotics Institute)</author>
+  <maintainer email="g.a.vanderhoorn@tudelft.nl">G.A. vd. Hoorn (TU Delft Robotics Institute)</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://wiki.ros.org/kawasaki_fs03n_moveit_config</url>
+  <url type="bugtracker">https://github.com/gavanderhoorn/kawasaki_experimental/issues</url>
+  <url type="repository">https://github.com/gavanderhoorn/kawasaki_experimental</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <test_depend>roslaunch</test_depend>
+
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>kawasaki_fs_support</exec_depend>
+  <exec_depend>moveit_fake_controller_manager</exec_depend>
+  <exec_depend>moveit_planners_ompl</exec_depend>
+  <exec_depend>moveit_ros_move_group</exec_depend>
+  <exec_depend>moveit_ros_visualization</exec_depend>
+  <exec_depend>moveit_ros_warehouse</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>rviz</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <export>
+    <architecture_independent />
+    <rosindex>
+      <tags>
+        <tag>moveit</tag>
+        <tag>kawasaki</tag>
+        <tag>experimental</tag>
+        <tag>industrial</tag>
+        <tag>ros-industrial</tag>
+        <tag>fs03n</tag>
+      </tags>
+    </rosindex>
+  </export>
+</package>
