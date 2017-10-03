@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <group ns="load_fs03n__">
+    <include file="$(find kawasaki_fs_support)/launch/load_fs03n.launch"/>
+  </group>
+
+  <group ns="test_fs03n__">
+    <include file="$(find kawasaki_fs_support)/launch/test_fs03n.launch"/>
+  </group>
+</launch>

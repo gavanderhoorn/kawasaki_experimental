@@ -1,0 +1,5 @@
+<?xml version="1.0" ?>
+<robot name="kawasaki_fs03n" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find kawasaki_fs_support)/urdf/fs03n_macro.xacro"/>
+  <xacro:kawasaki_fs03n prefix=""/>
+</robot>
