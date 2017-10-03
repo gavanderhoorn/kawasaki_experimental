@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: kawasaki_fs_support
+    relative_path: urdf/fs06l.xacro
+    use_jade_xacro: true
+  SRDF:
+    relative_path: config/kawasaki_fs06l.srdf
+  CONFIG:
+    author_name: G.A. vd. Hoorn (TU Delft Robotics Institute)
+    author_email: g.a.vanderhoorn@tudelft.nl
+    generated_timestamp: 1507048448
