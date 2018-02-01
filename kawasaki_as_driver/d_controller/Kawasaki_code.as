@@ -32,7 +32,7 @@ CALL close_socket(.send_port, .send_sock_id)
 .END
 .PROGRAM ros_recv_server () ; 
 $recv_state = "0, initiating"
-.recv_port = 11112
+.recv_port = 9111
 .recv_msgs_per_sec = 0.1
 .timeout_recv = 0.01
 .max_length = 255
@@ -45,11 +45,11 @@ $recv_state = "0, initiating"
   PRINT "\n Kawasaki can start receiving poses on port: ", .recv_port
   $recv_state = "2, receiving and queueing"
   WHILE active == 1 DO
-    tcp_recv .ret, .recv_sock_id, .$recv_buff[1], .num, .timeout_recv, .max_length
+    tcp_recv .ret, .recv_sock_id, .$recv_buff[1], .num, 1 ;, .timeout_recv, .max_length <-- D-controller
     IF .ret == 0 THEN
       print "received msg"
       .$msg = .$recv_buff[1]
-      print "decoding msg"
+      print "decoding msg :", .$msg
       CALL decode_ros_pose(.$msg, .joint1, .joint2, .joint3, .joint4, .joint5, .joint6, .header)
       print "inserting into queue"
       WAIT NOT (front == 0 AND rear == size -1) AND NOT (front == rear + 1)
