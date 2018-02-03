@@ -67,12 +67,92 @@ def power_on_and_off(tc):
 		time.sleep(4)
 
 def abort_kill_all(tc):
-	for command in ["pcabort", "pckill\r\ny", "abort", "kill\r\ny"]:
+	for command in ["pcabort", "pckill\r\n1", "abort", "kill\r\n1"]:
 		tc.write(command.encode() + b"\r\n")
 		print (tc.read_until(b">").decode("ascii"))
 
-def get_status_position(tc):
+def get_kawa_status(tc):
 	tc.write(b"status\r\n")
+	return tc.read_until(b">").decode("ascii")
+
+def get_kawa_position(tc):
 	tc.write(b"where\r\n")
-	time.sleep(0.001)
+	time.sleep(0.02)
 	return tc.read_very_eager().decode("ascii")
+	#return tc.read_until(b">").decode("ascii")
+
+def get_kawa_error(tc):
+	tc.write(b"errlog\r\n")
+	return tc.read_until(b">").decode("ascii")
+
+def get_kawa_id(tc):
+	tc.write(b"ID\r\n")
+	return tc.read_until(b">").decode("ascii")
+
+def status_to_protocol_msg(tc, STATUS):
+	robot_status = (STATUS.find("Robot status:"))
+	environment = (STATUS.find("Environment:"))
+	stepper_status = (STATUS.find("Stepper status:"))
+
+	drives_powered  = STATUS[robot_status:environment].find("Motor power OFF")        == -1
+	in_error        = STATUS[robot_status:environment].find("During error condition") != -1
+	in_motion       = STATUS[robot_status:environment].find("Now moving program")     != -1
+
+	if STATUS[robot_status:environment].find("REPEAT mode") != -1:
+		mode = "Repeat_mode"
+	else: mode = "Teach_mode"
+
+	if in_error == False:
+		error_code = None
+	else:
+		# get errorcode with errlog
+		ERRORLOG = get_kawa_error(tc)
+		error_code = ERRORLOG[ERRORLOG.find(" (E")+2: ERRORLOG.find(" (E")+7]
+
+	if drives_powered == True and in_error == False and mode == "Repeat_mode":
+		motion_possible = True
+	else: motion_possible = False
+
+	e_stopped = None
+
+	#print(drives_powered, e_stopped, error_code, in_error, in_motion, mode, motion_possible)
+
+	status_message = ("|13|" + str(drives_powered) + '|' + str(e_stopped) + '|' + str(error_code) + '|' + 
+		str(in_error) + '|' + str(in_motion) + '|' + str(mode) + '|' + str(motion_possible) + "|0x03")
+
+	status = ('0x02|0x01|' + str(len(status_message)) + status_message)
+	return status
+
+
+def is_motion_possible(tc, STATUS):
+	robot_status = (STATUS.find("Robot status:"))
+	environment = (STATUS.find("Environment:"))
+
+	drives_powered  = STATUS[robot_status:environment].find("Motor power OFF")        == -1
+	in_error        = STATUS[robot_status:environment].find("During error condition") != -1
+
+	if STATUS[robot_status:environment].find("REPEAT mode") != -1:
+		mode = "Repeat_mode"
+	else: mode = "Teach_mode"
+
+	if drives_powered == True and in_error == False and mode == "Repeat_mode":
+		motion_possible = True
+	else: motion_possible = False
+
+	return motion_possible
+
+def position_to_protocol_msg(WHERE):
+	jt6 = WHERE.find("JT6")
+	Xmm = WHERE.find("X[mm]")
+	
+	joints = WHERE[jt6+3:Xmm-4]
+	joints = " ".join(joints.split()).replace(" ", "|")
+
+	joint_position = ("0x02|0x01|" + str(len(joints)+len("|0x03")) + "|10|" + joints + "|0x03")
+	return joint_position
+
+def id_to_robot_type_msg(ID):
+	name = ID.find("Robot name:")
+	axis = ID.find("Num of axes")
+	robot_type = ID[name:axis-1]
+	return robot_type

@@ -6,19 +6,21 @@
 .END
 .PROGRAM ros_send_server()
 $send_state = "0, initiating"
-.send_port = 11111
-.send_msgs_per_sec = 0.5
+.send_port = 9112
+.send_msgs_per_sec = 0.02
 .buf_n = 1
-.tout = 0.1
+.tout = 1
   
 ; WHILE active == 1 DO
   $send_state = "1, connecting"
   print $send_state
+  CALL encode_ros_pose(.$pose)
   CALL open_socket(.send_port, .send_sock_id)
   PRINT "\n Kawasaki can start sending poses on port: ", .send_port
   
   $send_state = "2, Sending current pose"
   PRINT $send_state
+  
   WHILE active == 1 DO
     CALL encode_ros_pose(.$pose)
     .$send_buf[1] = .$pose
@@ -47,13 +49,13 @@ $recv_state = "0, initiating"
   WHILE active == 1 DO
     tcp_recv .ret, .recv_sock_id, .$recv_buff[1], .num, 1 ;, .timeout_recv, .max_length <-- D-controller
     IF .ret == 0 THEN
-      print "received msg"
+      ;print "received msg"
       .$msg = .$recv_buff[1]
-      print "decoding msg :", .$msg
-      CALL decode_ros_pose(.$msg, .joint1, .joint2, .joint3, .joint4, .joint5, .joint6, .header)
-      print "inserting into queue"
+      ;print "decoding msg :", .$msg
+      CALL decode_ros_pose(.$msg, .joint1, .joint2, .joint3, .joint4, .joint5, .joint6, .duration)
+      ;print "inserting into queue"
       WAIT NOT (front == 0 AND rear == size -1) AND NOT (front == rear + 1)
-      CALL queue_insert(.header, .joint1, .joint2, .joint3, .joint4, .joint5, .joint6)
+      CALL queue_insert(.duration, .joint1, .joint2, .joint3, .joint4, .joint5, .joint6)
     END
     TWAIT .recv_msgs_per_sec  
   END
@@ -80,7 +82,6 @@ END
 .PROGRAM open_socket (.port,.sockid) ; 
   
 PRINT "Listening on port: ", .port
-
 begin:
 TCP_LISTEN .ret, .port
 IF .ret <0 THEN
@@ -91,12 +92,10 @@ END
 accept:
 TCP_ACCEPT .sockid, .port, 1
 TCP_END_LISTEN .ret, .port
-
 IF .sockid < 0 THEN
   GOTO begin
   TWAIT 0.1
 END
-
 print "Connected on port:", .port
 .END
 .PROGRAM close_socket (.port, .sockid) ;
@@ -113,51 +112,67 @@ ELSE
   PRINT "TCP_CLOSE OK id =", .sockid
   
 END
-TCP_END_LISTEN ret, .port
-IF ret < 0 THEN
-  PRINT "Stop listen error port= ", .port
-ELSE
-  PRINT "Stopped listening OK port= ", .port
-END
+;TCP_END_LISTEN ret, .port
+;IF ret < 0 THEN
+;  PRINT "Stop listen error port= ", .port
+;ELSE
+;  PRINT "Stopped listening OK port= ", .port
+;END
 exit:
 .END
 .PROGRAM encode_ros_pose (.$pose) ; 
-HERE .#CP
-DECOMPOSE .CP[0] = .#CP
+HERE .#CPl
+DECOMPOSE .CPk[0] = .#CPl
 .$S = "|"
-.$pose = $CHR (2) + $ENCODE (/L, .$S, .CP[0], .$S, .CP[1], .$S, .CP[2], .$S, .CP[3], .$S, .CP[4], .$S, .CP[5], .$S) + $CHR (3) + $CHR (10)
+.$msg = "10" + $ENCODE(/L, .$S, .CPk[0], .$S, .CPk[1], .$S, .CPk[2], .$S, .CPk[3], .$S, .CPk[4], .$S, .CPk[5], .$S) + $CHR (3)
+.$pose = $CHR (2) + .$S + $CHR(1) + .$S + $ENCODE(/L, INSTR(.$msg, $CHR (3))) + .$S + .$msg
 .END
-.PROGRAM decode_ros_pose (.$msg,.joint1,.joint2,.joint3,.joint4,.joint5,.joint6,.header) ; 
-.$header = $DECODE (.$msg, $CHR (2) + "|", 1)
+.PROGRAM decode_ros_pose (.$msg,.joint1,.joint2,.joint3,.joint4,.joint5,.joint6,.duration) ; 
+.$header = $DECODE (.$msg, $CHR(2) + "|", 1)
 .$header = $DECODE (.$msg, "|", 0)
-; print "header: ",.$header
+print "header: ",.$header
+.$start_msg = $DECODE (.$msg, "|", 1)
+.$start_msg = $DECODE (.$msg, "|", 0)
+print "start_msg: ",.$start_msg
+.$msg_len = $DECODE (.$msg, "|", 1)
+.$msg_len = $DECODE (.$msg, "|", 0)
+.msg_len = VAL (.$msg_len)
+PRINT "Message length: ", .msg_len
+.$msg_id = $DECODE (.$msg, "|", 1)
+.$msg_id = $DECODE (.$msg, "|", 0)
+.msg_id = VAL (.$msg_id)
+PRINT "Message id: ", .msg_id
 .$joint1 = $DECODE (.$msg, "|", 1)
 .$joint1 = $DECODE (.$msg, "|", 0)
 .joint1 = VAL (.$joint1)
-; PRINT "joint1: ", .joint1
+PRINT "joint1: ", .joint1
 .$joint2 = $DECODE (.$msg, "|", 1)
 .$joint2 = $DECODE (.$msg, "|", 0)
 .joint2 = VAL (.$joint2)
-; PRINT "joint2: ",.joint2
+PRINT "joint2: ", .joint2
 .$joint3 = $DECODE (.$msg, "|", 1)
 .$joint3 = $DECODE (.$msg, "|", 0)
 .joint3 = VAL (.$joint3)
-; PRINT "joint3: ",.joint3
+PRINT "joint3: ",.joint3
 .$joint4 = $DECODE (.$msg, "|", 1)
 .$joint4 = $DECODE (.$msg, "|", 0)
 .joint4 = VAL (.$joint4)
-; PRINT "joint4: ",.joint4
+PRINT "joint4: ",.joint4
 .$joint5 = $DECODE (.$msg, "|", 1)
 .$joint5 = $DECODE (.$msg, "|", 0)
 .joint5 = VAL (.$joint5)
-; PRINT "joint5: ",.joint5
+PRINT "joint5: ",.joint5
 .$joint6 = $DECODE (.$msg, "|", 1)
 .$joint6 = $DECODE (.$msg, "|", 0)
 .joint6 = VAL (.$joint6)
-; PRINT "joint6: ", .joint6
+PRINT "joint6: ", .joint6
+.$duration = $DECODE (.$msg, "|", 1)
+.$duration = $DECODE (.$msg, "|", 0)
+.duration = VAL (.$duration)
+PRINT "Duration:", .duration
 .$footer = $DECODE (.$msg, "|", 1)
 .$footer = $DECODE (.$msg, "|", 0)
-; PRINT "footer:", .$footer
+PRINT "footer:", .$footer
 .END
 .PROGRAM queue_insert (.header, .joint1, .joint2, .joint3, .joint4, .joint5, .joint6) ;
   
@@ -281,6 +296,10 @@ END
 .PROGRAM Comment___ () ; Comments for IDE. Do not use.
 	; @@@ PROJECT @@@
 	; @@@ HISTORY @@@
+	; 02.02.2018 21:06:24
+	; 
+	; 03.02.2018 01:51:29
+	; 
 	; @@@ INSPECTION @@@
 	; @@@ PROGRAM @@@
 	; 0:ros_init_queue
