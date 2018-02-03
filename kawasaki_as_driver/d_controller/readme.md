@@ -30,6 +30,7 @@ Now run `telnet_admin.py`
 
 | to Do                         |
 |-------------------------------|
-| `Implement state-machine`     |
-| `Implement message protocol`  |
 | `Error handling`              |
+| 'Message checking kawa side'  |
+| 'Expand state machine'        |
+| 'rewrite api, clean, organizw'|

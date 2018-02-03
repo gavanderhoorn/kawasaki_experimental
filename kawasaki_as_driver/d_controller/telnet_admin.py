@@ -49,7 +49,7 @@ try:
 	tc.write(b"exe ros_move_kawa\r\n")
 	print (tc.read_until(b">").decode("ascii"))
 	
-	time.sleep(10)
+	time.sleep(60)
 	
 	tc.write(b"active = 0\r\n")
 	print (tc.read_until(b">").decode("ascii"))
